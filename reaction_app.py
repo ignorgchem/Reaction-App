@@ -4,6 +4,9 @@ import pandas as pd
 import json
 import re
 import requests
+import os 
+from typing import Optional
+
 
 class CreateToolTip(object):
     def __init__(self, widget, text='widget info'):
@@ -33,9 +36,8 @@ class CreateToolTip(object):
         x, y, cx, cy = self.widget.bbox("insert")
         x += self.widget.winfo_rootx() + 25
         y += self.widget.winfo_rooty() + 20
-        # creates a toplevel window
         self.tw = tk.Toplevel(self.widget)
-        self.tw.wm_overrideredirect(True)  # removes all window manager decorations
+        self.tw.wm_overrideredirect(True)
         self.tw.wm_geometry("+%d+%d" % (x, y))
         label = tk.Label(self.tw, text=self.text, justify='left',
                          background="#ffffe0", relief='solid', borderwidth=1,
@@ -47,23 +49,47 @@ class CreateToolTip(object):
         if tw:
             tw.destroy()
 
+
 class ReactionApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("IGN Software | Reaction Calculator v5.0") #ZkV Software. 
-        self.geometry("1000x600")
+        self.title("IGN software | Reaction App")
+
+        # Размеры главного окна 
+        win_width, win_height = 800, 600  # можно подогнать под твой интерфейс
+
+        # Размеры экрана
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        # Координаты для центрирования
+        x = (screen_width // 2) - (win_width // 2)
+        y = (screen_height // 2) - (win_height // 2)
+
+        # Установка геометрии
+        self.geometry(f"{win_width}x{win_height}+{x}+{y}")
+
+        # Иконку из той же папки
+        icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
+        if os.path.exists(icon_path):
+            try:
+                self.iconbitmap(icon_path)
+            except Exception as e:
+                print(f"Не удалось загрузить иконку: {e}")
 
         self.reagent_entries = {}
         self.num_reagents_var = tk.IntVar(value=3)
-        self.first_moles_var = tk.DoubleVar(value=0.5)
+        self.first_moles_var = tk.DoubleVar(value=0.005)
         self.last_result_df = None
 
         self.create_widgets()
 
     def create_widgets(self):
+        # Верхняя панель
         top = tk.Frame(self)
-        top.pack(pady=10)
-        tk.Label(top, text="Number of reagents:").pack(side=tk.LEFT)
+        top.pack(pady=10, fill=tk.X)
+
+        tk.Label(top, text="Number of reagents:").pack(side=tk.LEFT, padx=10)
         spin = tk.Spinbox(top, from_=1, to=20, textvariable=self.num_reagents_var, width=5)
         spin.pack(side=tk.LEFT, padx=5)
         
@@ -71,16 +97,22 @@ class ReactionApp(tk.Tk):
         btn_create.pack(side=tk.LEFT, padx=10)
         CreateToolTip(btn_create, "Create input table with specified number of reagents")
 
+        # NEW: кнопка "?" справа
+        btn_help = tk.Button(top, text="(?)", command=self.show_contacts)
+        btn_help.pack(side=tk.RIGHT, padx=10)
+        CreateToolTip(btn_help, "Show contact info")
+
         self.table_frame = tk.Frame(self)
         self.table_frame.pack(pady=10, fill=tk.X)
 
         moles_frame = tk.Frame(self)
-        moles_frame.pack(pady=5)
-        
-        tk.Label(moles_frame, text="Moles of first reagent:").pack(side=tk.LEFT)
+        moles_frame.pack(pady=5, anchor="w")  # anchor="w" выравнивает влево
+
+        tk.Label(moles_frame, text="Moles of first reagent:").pack(side=tk.LEFT, padx=10)  # такой же отступ
         ent_moles = tk.Entry(moles_frame, textvariable=self.first_moles_var, width=10)
         ent_moles.pack(side=tk.LEFT, padx=5)
         CreateToolTip(ent_moles, "Set the amount in moles of the first reagent")
+
 
         buttons = tk.Frame(self)
         buttons.pack(pady=10)
@@ -109,15 +141,74 @@ class ReactionApp(tk.Tk):
         btn_autofill.pack(side=tk.LEFT, padx=10)
         CreateToolTip(btn_autofill, "Auto-fetch molar mass and density by reagent name")
 
-
-
         self.result_text = tk.Text(self, height=20)
         self.result_text.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+    def show_contacts(self):
+        win = tk.Toplevel(self)
+        win.title("Contacts")
+        win.resizable(False, False)
+
+        # Размеры окна контакта
+        win_width, win_height = 400, 180
+
+        # Геометрия окна
+        parent_x = self.winfo_rootx()
+        parent_y = self.winfo_rooty()
+        
+        parent_w = self.winfo_width()
+        parent_h = self.winfo_height()
+
+        # Центрирование
+        x = parent_x + (parent_w // 2 - win_width // 2)
+        y = parent_y + (parent_h // 2 - win_height // 2)
+
+        win.geometry(f"{win_width}x{win_height}+{x}+{y}")
+
+        # Заголовок
+        tk.Label(
+            win,
+            text="If you have suggestions or found a problem,\nplease contact me:",
+            font=("Arial", 10, "italic"),
+            justify="center",
+            fg="gray20"
+        ).pack(pady=(10, 15))
+
+        contacts = {
+            "📧 Email": "ivanguzeknovikov881@gmail.com",
+        }
+
+        frame = tk.Frame(win)
+        frame.pack(pady=5)
+
+        def copy_to_clipboard(value: str):
+            self.clipboard_clear()
+            self.clipboard_append(value)
+            self.update()
+
+            status.config(text=f"Copied: {value}", fg="green")
+            win.after(2000, lambda: status.config(text=""))
+
+        row = 0
+        for label, value in contacts.items():
+            tk.Label(frame, text=label, anchor="w").grid(row=row, column=0, padx=10, pady=5, sticky="w")
+
+            entry = tk.Entry(frame, width=30, bd=0, relief="flat", fg="blue")
+            entry.insert(0, value)
+            entry.configure(state="readonly")
+            entry.grid(row=row, column=1, padx=5, pady=5, sticky="w")
+
+            tk.Button(frame, text="Copy", command=lambda v=value: copy_to_clipboard(v))\
+                .grid(row=row, column=2, padx=5, pady=5)
+            row += 1
+
+        status = tk.Label(win, text="", font=("Arial", 9))
+        status.pack(pady=(5, 5))
+
 
     def create_table(self):
         props = ["Str. Name", "Molar ratio", "Molar mass (g/mol)", "Density (g/mL)"]
 
-        # If table not yet created, create header and property labels
         if not self.reagent_entries:
             self.reagent_entries = {p: [] for p in props}
 
@@ -130,7 +221,7 @@ class ReactionApp(tk.Tk):
         current_n = len(self.reagent_entries["Str. Name"])
         requested_n = self.num_reagents_var.get()
 
-        # Remove extra columns if needed
+        # Убавить колонки
         if requested_n < current_n:
             for c in range(requested_n, current_n):
                 for r in range(len(props)+2):
@@ -139,7 +230,7 @@ class ReactionApp(tk.Tk):
             for k in self.reagent_entries.keys():
                 self.reagent_entries[k] = self.reagent_entries[k][:requested_n]
 
-        # Add columns if needed
+        # Добавить колонки
         elif requested_n > current_n:
             for c in range(current_n, requested_n):
                 tk.Label(self.table_frame, text=f"Reagent {c+1}", borderwidth=1, relief="ridge", width=15)\
@@ -151,7 +242,7 @@ class ReactionApp(tk.Tk):
                     if prop == "Molar ratio":
                         e.insert(0, "1.0")
                     elif prop == "Molar mass (g/mol)":
-                        e.insert(0, "60.0")
+                        e.insert(0, "0")
                     self.reagent_entries[prop].append(e)
 
                 btn_save = tk.Button(self.table_frame, text="💾", width=3, command=lambda col=c: self.save_single_preset(col))
@@ -160,13 +251,14 @@ class ReactionApp(tk.Tk):
                 btn_load.grid(row=len(props)+1, column=c+1, sticky="e")
                 CreateToolTip(btn_save, f"Save preset for Reagent {c+1}")
                 CreateToolTip(btn_load, f"Load preset for Reagent {c+1}")
+                
         # После добавления/удаления столбцов
         total_columns = len(self.reagent_entries["Str. Name"])
-        base_width = 1000  # ширина окна по умолчанию
+        base_width = 1000  # ширина окна
         column_width = 120  # ширина на каждый реагент
         max_visible = 6     # количество реагентов, умещающихся без скролла
 
-        # Увеличиваем ширину окна, если реагентов больше, чем max_visible
+        # Увеличиваем ширину окна
         if total_columns > max_visible:
             new_width = base_width + (total_columns - max_visible) * column_width
             self.geometry(f"{new_width}x600")
@@ -203,7 +295,6 @@ class ReactionApp(tk.Tk):
                 print(f"Error fetching for '{name}': {e}")
 
 
-    # Single preset save/load methods unchanged, just renamed variable names to English
     def save_single_preset(self, col):
         if not self.reagent_entries:
             messagebox.showerror("Error", "Create table first!")
@@ -315,7 +406,7 @@ class ReactionApp(tk.Tk):
             messagebox.showerror("Error", "Create table first!")
             return
         try:
-            # Колонки — названия реагентов
+            # Колонки
             names = [e.get().strip() or f"Reagent {i+1}" for i, e in enumerate(self.reagent_entries["Str. Name"])]
 
             # Считываем свойства
@@ -344,10 +435,10 @@ class ReactionApp(tk.Tk):
             vol_ml = [round(g / d, 4) if d else "—" for g, d in zip(grams, densities)]
             vol_ul = [round(v * 1000, 1) if isinstance(v, float) else "—" for v in vol_ml]
 
-            # Плотности для таблицы
+            # Плотности
             densities_display = [d if d is not None else "—" for d in densities]
 
-            # Создаём DataFrame: строки — свойства, колонки — реагенты
+            # DataFrame
             df = pd.DataFrame({
                 "Molar ratio": ratios,
                 "Moles": mols,
@@ -421,7 +512,7 @@ class ReactionApp(tk.Tk):
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load file:\n{e}")
-    def get_cid_by_name(self, name: str) -> int | None:
+    def get_cid_by_name(self, name: str) -> Optional[int]:
         url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/cids/TXT"
         r = requests.get(url, timeout=10)
         if r.ok and r.text.strip():
@@ -494,3 +585,6 @@ class ReactionApp(tk.Tk):
 if __name__ == "__main__":
     app = ReactionApp()
     app.mainloop()
+
+#собирать так:
+#python -m PyInstaller --onefile --noconsole --icon=icon.ico --add-data "icon.ico;." reaction_app_6.py
