@@ -5,6 +5,7 @@ import json
 import re
 import requests
 import os 
+from typing import Optional
 
 
 class CreateToolTip(object):
@@ -154,6 +155,7 @@ class ReactionApp(tk.Tk):
         # Геометрия окна
         parent_x = self.winfo_rootx()
         parent_y = self.winfo_rooty()
+        
         parent_w = self.winfo_width()
         parent_h = self.winfo_height()
 
@@ -510,7 +512,7 @@ class ReactionApp(tk.Tk):
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load file:\n{e}")
-    def get_cid_by_name(self, name: str) -> int | None:
+    def get_cid_by_name(self, name: str) -> Optional[int]:
         url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/cids/TXT"
         r = requests.get(url, timeout=10)
         if r.ok and r.text.strip():
