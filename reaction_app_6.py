@@ -6,6 +6,7 @@ import re
 import requests
 import os 
 
+
 class CreateToolTip(object):
     def __init__(self, widget, text='widget info'):
         self.waittime = 500     
@@ -53,7 +54,7 @@ class ReactionApp(tk.Tk):
         super().__init__()
         self.title("IGN software | Reaction App")
 
-        # Размеры главного окна
+        # Размеры главного окна 
         win_width, win_height = 800, 600  # можно подогнать под твой интерфейс
 
         # Размеры экрана
@@ -583,5 +584,5 @@ if __name__ == "__main__":
     app = ReactionApp()
     app.mainloop()
 
-
+#собирать так:
 #python -m PyInstaller --onefile --noconsole --icon=icon.ico --add-data "icon.ico;." reaction_app_6.py
