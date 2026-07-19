@@ -281,14 +281,14 @@ class ReactionApp(tk.Tk):
 
                 # Молярная масса
                 mw_entry = self.reagent_entries["Molar mass (g/mol)"][i]
-                mw_entry.delete(0, tk.END)
                 if "Molecular Weight" in props:
+                    mw_entry.delete(0, tk.END)
                     mw_entry.insert(0, str(props["Molecular Weight"]))
 
                 # Плотность
                 dens_entry = self.reagent_entries["Density (g/mL)"][i]
-                dens_entry.delete(0, tk.END)
                 if "Density" in props and props["Density"] is not None:
+                    dens_entry.delete(0, tk.END)
                     dens_entry.insert(0, str(props["Density"]))
 
             except Exception as e:
