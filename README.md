@@ -2,6 +2,8 @@
 
 A desktop application for chemical reaction calculations built with **Python** and **Tkinter**.
 
+---
+
 Reaction App is a lightweight desktop utility developed to simplify routine calculations in synthetic chemistry laboratories. The application allows chemists to calculate reagent amounts for multi-component reactions based on stoichiometric ratios, molecular weights, densities, and the desired scale of synthesis.
 
 Instead of performing repetitive calculations manually in spreadsheets or on paper, the user enters the reaction parameters once, after which the program automatically calculates all required quantities. The application also supports reagent presets, experiment templates, and automatic retrieval of physicochemical properties from the PubChem database.
